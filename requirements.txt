@@ -3,4 +3,3 @@ openai
 elevenlabs
 stripe
 python-dotenv
-streamlit-audiorecorder
