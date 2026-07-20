@@ -46,12 +46,7 @@ st.progress(st.session_state.count / 50, text=f"Free: {st.session_state.count}/5
 
 # ====== 2. WHATSAPP "HOLD TO TALK" BUTTON ======
 st.markdown('<div class="mic-button">', unsafe_allow_html=True)
-audio_bytes = audio_recorder(
-    text="Hold to Talk", 
-    recording_color="#EF4444",
-    neutral_color="#2563EB",
-    icon_size="3x"
-)
+audio_bytes = st.audio_input("🎤 Hold to Talk")
 st.markdown('</div>', unsafe_allow_html=True)
 
 # ====== 3. CORE LOGIC: RECORD -> DETECT -> TRANSLATE ======
