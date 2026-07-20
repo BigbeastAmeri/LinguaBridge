@@ -2,6 +2,6 @@ streamlit
 openai
 elevenlabs
 stripe
-speechrecognition
-pyaudio
 python-dotenv
+streamlit-webrtc
+av
