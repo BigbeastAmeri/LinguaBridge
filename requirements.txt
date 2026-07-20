@@ -1,6 +1,6 @@
 streamlit
 openai
-elevenlabs
+elevenlabs==0.2.26
 stripe
 python-dotenv
 gtts
