@@ -2,47 +2,78 @@ import streamlit as st
 from streamlit_mic_recorder import mic_recorder
 from deep_translator import GoogleTranslator
 from gtts import gTTS
-import io, urllib.parse
+import speech_recognition as sr
+import io
+import urllib.parse
 
-try:
-    import whisper
-    import speech_recognition as sr
-    WHISPER_AVAILABLE = True
-except:
-    import speech_recognition as sr
-    WHISPER_AVAILABLE = False
+# --- PAGE CONFIG ---
+st.set_page_config(
+    page_title="LinguaBridge - AI Voice Translator",
+    page_icon="🌎",
+    layout="centered"
+)
 
-st.set_page_config(page_title="LinguaBridge", page_icon="🌎", layout="centered")
-
+# --- CSS - PRO DARK + NO RED BORDER ---
 st.markdown("""
 <style>
     #MainMenu, footer, header {visibility: hidden;}
     .stDeployButton {display:none;}
-    .block-container {padding-top: 2rem; max-width: 600px;}
+    .block-container {padding-top: 2rem; padding-bottom: 3rem; max-width: 600px;}
+    .main-title {text-align:center; font-size: 32px; font-weight: 800; margin-bottom: 0px;}
+    .sub-title {text-align:center; color:#8b90a0; font-size:14px; margin-top:5px; margin-bottom:30px;}
     div[data-baseweb="select"] > div {
-        border-color: #2a2e39!important; background-color: #232733!important;
+        border-color: #2a2e39!important;
+        background-color: #232733!important;
+        border-radius: 12px!important;
     }
     div[data-baseweb="select"] > div:focus-within {
-        border-color: #4F46E5!important; box-shadow: 0 0 0 1px #4F46E5!important;
+        border-color: #4F46E5!important;
+        box-shadow: 0 0 0 1px #4F46E5!important;
     }
     .result-box {
-        background: #232733; border-radius: 16px; padding: 16px;
-        border-left: 4px solid #4F46E5; margin-top: 20px;
+        background: #232733; 
+        border-radius: 16px; 
+        padding: 20px;
+        border-left: 4px solid #4F46E5; 
+        margin-top: 25px;
+        margin-bottom: 15px;
+    }
+    .stButton > button {
+        background-color: #232733!important;
+        border: 1px solid #2a2e39!important;
+        border-radius: 12px!important;
+        color: white!important;
     }
 </style>
 """, unsafe_allow_html=True)
 
+# --- ONLY GOOGLE FREE LANGUAGES - NO AFRICA ---
 LANGUAGES = {
-    "Auto Detect": "auto", "English (US)": "en", "Spanish": "es", "French": "fr",
-    "Chinese (Mandarin)": "zh", "German": "de", "Arabic": "ar",
-    "Portuguese": "pt", "Russian": "ru", "Japanese": "ja",
-    "Hindi": "hi", "Italian": "it", "Korean": "ko",
-    "Yoruba": "yo", "Igbo": "ig", "Hausa": "ha"
+    "Auto Detect": "auto",
+    "English (US)": "en",
+    "Spanish": "es",
+    "French": "fr",
+    "Chinese (Mandarin)": "zh",
+    "German": "de",
+    "Arabic": "ar",
+    "Portuguese": "pt",
+    "Russian": "ru",
+    "Japanese": "ja",
+    "Hindi": "hi",
+    "Italian": "it",
+    "Korean": "ko",
+    "Dutch": "nl",
+    "Turkish": "tr"
 }
 
-st.markdown("<h2 style='text-align:center;'>🌎 LinguaBridge</h2>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:center; color:#8b90a0; margin-top:-10px;'>Speak Any Language. Understand Everything.</p>", unsafe_allow_html=True)
+if "history" not in st.session_state:
+    st.session_state.history = []
 
+# --- HEADER ---
+st.markdown('<p class="main-title">🌎 LinguaBridge</p>', unsafe_allow_html=True)
+st.markdown('<p class="sub-title">Speak Any Language. Understand Everything.</p>', unsafe_allow_html=True)
+
+# --- LANGUAGE SELECT ---
 c1, c2 = st.columns(2)
 with c1:
     src_name = st.selectbox("From", list(LANGUAGES.keys()), index=0)
@@ -52,7 +83,8 @@ with c2:
 src_code = LANGUAGES[src_name]
 tgt_code = LANGUAGES[tgt_name]
 
-st.markdown("<p style='text-align:center; font-weight:600; margin-top:30px;'>🎙️ Hold to Talk</p>", unsafe_allow_html=True)
+# --- MIC BUTTON ---
+st.markdown("<p style='text-align:center; font-weight:600; margin-top:30px; font-size:18px;'>🎙️ Hold to Talk</p>", unsafe_allow_html=True)
 
 audio = mic_recorder(
     start_prompt=" ● Hold to Record ",
@@ -63,45 +95,60 @@ audio = mic_recorder(
     key="recorder"
 )
 
+# --- PROCESS AUDIO ---
 if audio:
     try:
-        # Hybrid: Yoruba/Igbo/Hausa = Whisper FREE, Others = Google FREE
-        if src_code in ["yo", "ig", "ha"] and WHISPER_AVAILABLE:
-            st.toast("Listening for Yoruba/Igbo/Hausa...")
-            with open("/tmp/temp.wav", "wb") as f:
-                f.write(audio['bytes'])
-            model = whisper.load_model("tiny")
-            result = model.transcribe("/tmp/temp.wav", language=src_code)
-            temp_text = result["text"]
-        else:
-            r = sr.Recognizer()
-            with sr.AudioFile(io.BytesIO(audio['bytes'])) as source:
-                audio_data = r.record(source)
-                lang_for_google = "en-US" if src_code == "auto" else src_code
-                temp_text = r.recognize_google(audio_data, language=lang_for_google)
+        r = sr.Recognizer()
+        with sr.AudioFile(io.BytesIO(audio['bytes'])) as source:
+            audio_data = r.record(source)
+            temp_text = r.recognize_google(audio_data)
 
+        # Translate with Google FREE
         translated = GoogleTranslator(source="auto", target=tgt_code).translate(temp_text)
+        st.session_state.history.insert(0, {"src": temp_text, "tgt": translated, "from": src_name, "to": tgt_name})
 
+        # Result Box
         st.markdown(f"""
         <div class='result-box'>
-            <small style="color:#8b90a0;">{src_name.upper()}</small>
-            <p style="font-size:20px; font-weight:600; margin:8px 0;">{temp_text}</p>
-            <hr style="border-color:#2a2e39;">
-            <small style="color:#8b90a0;">{tgt_name.upper()}</small>
-            <h3 style="margin:8px 0; color:#fff;">{translated}</h3>
+            <small style="color:#8b90a0; letter-spacing:1px;">{src_name.upper()}</small>
+            <p style="font-size:22px; font-weight:700; margin:10px 0; color:#fff;">{temp_text}</p>
+            <hr style="border-color:#2a2e39; margin:15px 0;">
+            <small style="color:#8b90a0; letter-spacing:1px;">{tgt_name.upper()}</small>
+            <h3 style="margin:10px 0; color:#fff; font-size:22px;">{translated}</h3>
         </div>
         """, unsafe_allow_html=True)
 
+        # Audio playback - Google FREE TTS
         tts = gTTS(text=translated, lang=tgt_code)
         mp3_fp = io.BytesIO()
         tts.write_to_fp(mp3_fp)
         st.audio(mp3_fp, format="audio/mp3")
 
-        st.code(translated, language=None)
-        st.caption("↑ Long press to copy")
-        
-        wa_text = urllib.parse.quote(f"{temp_text} -> {translated} (LinguaBridge)")
-        st.link_button("Share to WhatsApp", f"https://wa.me/?text={wa_text}", use_container_width=True)
+        # Copy + Share
+        col1, col2 = st.columns(2)
+        with col1:
+            st.code(translated, language=None)
+            st.caption("↑ Long press to copy")
+        with col2:
+            wa_text = urllib.parse.quote(f"{temp_text} -> {translated} (via LinguaBridge)")
+            st.link_button("Share to WhatsApp", f"https://wa.me/?text={wa_text}", use_container_width=True)
 
     except Exception as e:
-        st.error(f"Could not understand. Try again. {e}")
+        st.error(f"Could not hear you. Speak louder and try again.")
+        st.caption(f"Error: {e}")
+
+# --- HISTORY ---
+if st.session_state.history:
+    st.markdown("### Recent Translations")
+    for h in st.session_state.history[:5]:
+        st.markdown(f"""
+        <div style='background:#1a1d24; border:1px solid #2a2e39; padding:12px 16px; border-radius:12px; margin-bottom:8px;'>
+            <small style='color:#8b90a0;'>{h['from']} → {h['to']}</small><br>
+            <small style='color:#fff;'>{h['src']}</small><br>
+            <b style='color:#fff;'>{h['tgt']}</b>
+        </div>
+        """, unsafe_allow_html=True)
+
+    if st.button("Clear History"):
+        st.session_state.history = []
+        st.rerun()
