@@ -1,7 +1,7 @@
 streamlit
-openai
-elevenlabs==0.2.26
-stripe
-python-dotenv
-gtts
-pyperclip
+streamlit-mic-recorder
+SpeechRecognition
+deep-translator
+gTTS
+langdetect
+pydub
