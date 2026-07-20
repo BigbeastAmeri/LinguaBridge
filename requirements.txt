@@ -3,3 +3,5 @@ openai
 elevenlabs
 stripe
 python-dotenv
+gtts
+pyperclip
