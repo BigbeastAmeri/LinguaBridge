@@ -83,17 +83,75 @@ with c2:
 src_code = LANGUAGES[src_name]
 tgt_code = LANGUAGES[tgt_name]
 
-# --- MIC BUTTON ---
-st.markdown("<p style='text-align:center; font-weight:600; margin-top:30px; font-size:18px;'>🎙️ Hold to Talk</p>", unsafe_allow_html=True)
+# --- MIC BUTTON - FIXED FOR iPHONE ---
+import streamlit.components.v1 as components
+import base64
 
-audio = mic_recorder(
-    start_prompt=" ● Hold to Record ",
-    stop_prompt=" ● Recording... Release to Stop",
-    just_once=False,
-    use_container_width=True,
-    format="wav",
-    key="recorder"
-)
+# this is the new recorder - it fixes the hold bug
+audio_data = components.html("""
+<style>
+  #holdBtn {
+    background: #3b82f6; color: white; border: none;
+    border-radius: 999px; padding: 18px 36px;
+    font-size: 18px; font-weight: 600;
+    touch-action: none; -webkit-touch-callout: none;
+    user-select: none; width: 100%;
+  }
+  #holdBtn.recording { background: #ef4444; transform: scale(1.02); }
+  #status { margin-top: 10px; color: #888; text-align:center; font-size: 14px; }
+</style>
+<button id="holdBtn">🎙️ Hold to Record</button>
+<div id="status">Ready</div>
+<script>
+const btn = document.getElementById('holdBtn');
+const status = document.getElementById('status');
+let recorder, stream, chunks=[], startTime, timer;
+async function start(e){
+  e.preventDefault(); btn.setPointerCapture(e.pointerId);
+  stream = await navigator.mediaDevices.getUserMedia({audio:true});
+  chunks=[]; recorder = new MediaRecorder(stream);
+  recorder.ondataavailable = d=>chunks.push(d.data);
+  recorder.onstop = ()=>{
+    const blob = new Blob(chunks,{type:'audio/wav'});
+    const reader = new FileReader();
+    reader.onloadend = ()=>{
+      const base64 = reader.result;
+      window.parent.postMessage({type:'streamlit:setComponentValue', value: base64}, '*');
+    };
+    reader.readAsDataURL(blob);
+    stream.getTracks().forEach(t=>t.stop());
+  };
+  recorder.start(); btn.classList.add('recording');
+  btn.textContent='● Recording... Release to Stop';
+  startTime=Date.now();
+  timer=setInterval(()=>{ status.textContent = ((Date.now()-startTime)/1000).toFixed(1)+'s'; },100);
+}
+function stop(e){
+  if(e) e.preventDefault();
+  if(recorder && recorder.state==='recording'){
+    recorder.stop(); clearInterval(timer);
+    btn.classList.remove('recording');
+    btn.textContent='🎙️ Hold to Record'; status.textContent='Processing...';
+  }
+}
+btn.addEventListener('pointerdown', start);
+btn.addEventListener('pointerup', stop);
+btn.addEventListener('pointercancel', stop);
+btn.addEventListener('pointerleave', stop);
+window.addEventListener('pointerup', stop);
+</script>
+""", height=120)
+
+# Convert it to same format your old code used
+audio = None
+if audio_data:
+    try:
+        # decode base64 to bytes like mic_recorder gave you
+        header, b64data = audio_data.split(',',1)
+        audio_bytes = base64.b64decode(b64data)
+        audio = {'bytes': audio_bytes} 
+    except:
+        audio = audio_data
 
 # --- PROCESS AUDIO ---
 if audio:
