@@ -1,5 +1,5 @@
 import streamlit as st
-from streamlit_audio_recorder import audio_recorder
+from audiorecorder import audiorecorder
 import openai
 from gtts import gTTS
 from elevenlabs import generate, set_api_key, voices
