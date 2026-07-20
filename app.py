@@ -1,8 +1,7 @@
 import streamlit as st
-
 import openai
 from gtts import gTTS
-from elevenlabs import generate, set_api_key, voices
+from elevenlabs import generate, set_api_key
 import tempfile
 import pyperclip
 import base64
@@ -10,8 +9,8 @@ import base64
 # ====== USA STANDARD SETUP ======
 st.set_page_config(page_title="LinguaBridge Pro", page_icon="🌍", layout="centered")
 
-# YOUR API KEYS - PUT THEM IN .streamlit/secrets.toml
-openai.api_key = st.secrets["OPENAI_API_KEY"] 
+# YOUR API KEYS - PUT THEM IN.streamlit/secrets.toml
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 set_api_key(st.secrets["ELEVENLABS_API_KEY"])
 
 # USA DESIGN
@@ -35,14 +34,14 @@ if "count" not in st.session_state: st.session_state.count = 0
 
 # ====== 1. FLAG SELECTOR - USA UX ======
 lang_map = {
-    "🇺🇸 English": "en", "🇨🇳 Chinese": "zh", "🇪🇸 Spanish": "es", "🇫🇷 French": "fr", 
+    "🇺🇸 English": "en", "🇨🇳 Chinese": "zh", "🇪🇸 Spanish": "es", "🇫🇷 French": "fr",
     "🇳🇬 Yoruba": "yo", "🇳🇬 Hausa": "ha", "🇳🇬 Igbo": "ig", "🇸🇦 Arabic": "ar"
 }
 target_lang_label = st.selectbox("Translate to:", list(lang_map.keys()))
 target_lang = lang_map[target_lang_label]
 
-# FREE LIMIT
-st.progress(st.session_state.count / 50, text=f"Free: {st.session_state.count}/50 translations")
+# FIX 1: FREE UNLIMITED V1 - NO MORE 50 LIMIT
+st.info("Free: Unlimited V1")
 
 # ====== 2. WHATSAPP "HOLD TO TALK" BUTTON ======
 st.markdown('<div class="mic-button">', unsafe_allow_html=True)
@@ -56,7 +55,7 @@ if audio_bytes:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
             tmp.write(audio_bytes)
             tmp_path = tmp.name
-        
+
         audio_file = open(tmp_path, "rb")
         transcript = openai.Audio.transcribe("whisper-1", audio_file, response_format="verbose_json")
         original_text = transcript.text
@@ -72,7 +71,7 @@ if audio_bytes:
 
         # SAVE TO CHAT
         st.session_state.chat.append({
-            "original": original_text, "detected": detected_lang, 
+            "original": original_text, "detected": detected_lang,
             "translated": translated_text, "target": target_lang, "conf": confidence,
             "audio": audio_bytes
         })
@@ -86,7 +85,7 @@ for i, msg in enumerate(st.session_state.chat):
         st.write(f"**You [{msg['detected']}]**: {msg['original']}")
         st.write(f"**→ [{target_lang_label}]**: {msg['translated']}")
         st.caption(f"AI Confidence: {msg['conf']}%")
-        
+
         # ACTION BUTTONS: COPY, SHARE, PLAY - USA STANDARD
         col1, col2, col3, col4 = st.columns(4)
         with col1:
@@ -98,7 +97,7 @@ for i, msg in enumerate(st.session_state.chat):
             share_text = f"https://wa.me/?text={msg['translated']}"
             st.link_button("📤 Share", share_text)
         with col3:
-            # PLAY TRANSLATION
+            # PLAY TRANSLATION - FREE ROBOT VOICE
             tts = gTTS(text=msg['translated'], lang=msg['target'])
             with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp:
                 tts.save(tmp.name)
@@ -109,25 +108,25 @@ for i, msg in enumerate(st.session_state.chat):
 
         # ====== 5. PRO FEATURE: VOICE CLONING ======
         if st.session_state.pro:
-            if st.button("🎙️ Send with YOUR Voice", key=f"clone{i}"):
-                with st.spinner("Cloning your voice to English..."):
-                    # ELEVENLABS VOICE CLONING
+            if st.button("🎙️ Send with YOUR Voice - Pro", key=f"clone{i}"):
+                with st.spinner("Cloning your voice..."):
+                    # ELEVENLABS VOICE CLONING - SPEAKS TRANSLATION IN YOUR VOICE
                     audio = generate(
                         text=msg['translated'],
-                        voice="YOUR_VOICE_ID", # You clone your voice once in ElevenLabs
+                        voice="YOUR_VOICE_ID", # IMPORTANT: Replace this with your real Voice ID from ElevenLabs
                         model="eleven_multilingual_v2"
                     )
                     st.audio(audio)
                     st.download_button("Download Voice Note", audio, "voice_note.mp3")
         else:
-            st.info("Upgrade to Pro to send voice notes in YOUR voice")
+            st.warning("🔒 Upgrade to Pro to send voice notes in YOUR voice")
         st.markdown('</div>', unsafe_allow_html=True)
 
-# ====== 6. PRO PAYWALL - USA STANDARD ======
+# ====== 6. PRO PAYWALL - FIX 2: UPDATED TEXT ======
 if not st.session_state.pro:
     st.divider()
     st.subheader("Upgrade to Pro $14.99/mo")
-    st.write("✅ Unlimited translations \n✅ Voice Cloning \n✅ No Watermark \n✅ Priority Speed")
+    st.write("✅ Voice notes in YOUR voice \nExample: English to Spanish in your voice \n✅ Unlimited translations \n✅ Priority Speed \n✅ No Watermark")
     if st.button("Upgrade Now", type="primary"):
         st.session_state.pro = True # Connect this to Stripe later
         st.rerun()
