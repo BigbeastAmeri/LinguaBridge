@@ -3,4 +3,3 @@ streamlit-mic-recorder
 SpeechRecognition
 deep-translator
 gTTS
-openai-whisper
