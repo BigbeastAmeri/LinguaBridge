@@ -1,8 +1,6 @@
-    streamlit
-    openai
-    elevenlabs
-    stripe
-    python-dotenv
-    streamlit-webrtc
-    av
-    streamlit-audio-recorder
+streamlit
+openai
+elevenlabs
+stripe
+python-dotenv
+streamlit-audiorecorder
