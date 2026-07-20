@@ -3,5 +3,4 @@ streamlit-mic-recorder
 SpeechRecognition
 deep-translator
 gTTS
-langdetect
-pydub
+openai-whisper
