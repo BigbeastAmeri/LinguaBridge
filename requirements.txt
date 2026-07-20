@@ -1,1 +1,6 @@
-
+streamlit
+streamlit-audio-recorder
+openai
+elevenlabs
+gtts
+pyperclip
