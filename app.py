@@ -106,25 +106,15 @@ audio = mic_recorder(
     just_once=False,
     use_container_width=True,
     format="wav",
-    key="recorder"
+    key="recorder",
 )
 # --- PROCESS AUDIO ---
 if audio:
-    try:
-        from pydub import AudioSegment
-        import io
-        
-        # Get the raw bytes from mic
-        raw_bytes = audio['bytes']
-        
-        # Convert whatever iPhone sent (webm/m4a/wav) to proper wav
-        sound = AudioSegment.from_file(io.BytesIO(raw_bytes))
-        wav_buffer = io.BytesIO()
-        sound.export(wav_buffer, format="wav")
-        wav_buffer.seek(0)
-
-        r = sr.Recognizer()
-        with sr.AudioFile(wav_buffer) as source:
+    import io
+    wav_buffer = io.BytesIO(audio['bytes'])
+    
+    r = sr.Recognizer()
+    with sr.AudioFile(wav_buffer) as source:
             audio_data = r.record(source)
             temp_text = r.recognize_google(audio_data)
 
