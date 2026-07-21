@@ -84,22 +84,47 @@ src_code = LANGUAGES[src_name]
 tgt_code = LANGUAGES[tgt_name]
 
 # --- MIC BUTTON ---
-st.markdown("<p style='text-align:center; font-weight:600; margin-top:30px; font-size:18px;'>🎙️ Hold to Record</p>", unsafe_allow_html=True)
+# --- FIX iPHONE LONG PRESS MENU (THIS IS THE REAL FIX) ---
+st.markdown("""
+<style>
+* {
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+button, [data-testid="stAudio"] {
+  -webkit-touch-callout: none !important;
+  user-select: none !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
+# --- MIC BUTTON ---
 audio = mic_recorder(
-    start_prompt=" Hold to Record ",
-    stop_prompt=" Recording... Release to Stop",
+    start_prompt="🎙️ Hold to Record",
+    stop_prompt="🔴 Release to Stop",
     just_once=False,
     use_container_width=True,
-    format="webm",
+    format="wav",
     key="recorder"
 )
-
 # --- PROCESS AUDIO ---
 if audio:
     try:
+        from pydub import AudioSegment
+        import io
+        
+        # Get the raw bytes from mic
+        raw_bytes = audio['bytes']
+        
+        # Convert whatever iPhone sent (webm/m4a/wav) to proper wav
+        sound = AudioSegment.from_file(io.BytesIO(raw_bytes))
+        wav_buffer = io.BytesIO()
+        sound.export(wav_buffer, format="wav")
+        wav_buffer.seek(0)
+
         r = sr.Recognizer()
-        with sr.AudioFile(io.BytesIO(audio['bytes'])) as source:
+        with sr.AudioFile(wav_buffer) as source:
             audio_data = r.record(source)
             temp_text = r.recognize_google(audio_data)
 
