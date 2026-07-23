@@ -68,16 +68,17 @@ st.markdown('<p class="sub-title">Speak Any Language. Understand Everything.</p>
 if 'history' not in st.session_state:
     st.session_state.history = []
 if 'from_lang' not in st.session_state:
-    st.session_state.from_lang = "Auto Detect"
-    st.session_state.to_lang = "Spanish"
+    st.session_state["from_lang"] = "Auto Detect"
+    st.session_state["to_lang"] = "Spanish"
 if 'do_swap' not in st.session_state:
-    st.session_state.do_swap = False
+    st.session_state["do_swap"] = False
 
-if st.session_state.do_swap:
-    temp_from = st.session_state.from_lang
-    st.session_state.from_lang = st.session_state.to_lang
-    st.session_state.to_lang = temp_from
-    st.session_state.do_swap = False
+if st.session_state["do_swap"]:
+    f = st.session_state["from_lang"]
+    t = st.session_state["to_lang"]
+    st.session_state["from_lang"] = t
+    st.session_state["to_lang"] = f
+    st.session_state["do_swap"] = False
 
 c1, c2, c3 = st.columns([4,1,4])
 with c1:
@@ -87,7 +88,7 @@ with c1:
 with c2:
     st.markdown(" ")
     if st.button("🔄", use_container_width=True):
-        st.session_state.do_swap = True
+        st.session_state["do_swap"] = True
         st.rerun()
 with c3:
     st.markdown("To")
