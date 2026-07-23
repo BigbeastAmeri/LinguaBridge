@@ -17,7 +17,7 @@ st.markdown("""
 <style>
 #MainMenu, footer, header {visibility: hidden;}
 div[data-baseweb="select"] {border-left: 4px solid #7c3aed !important;}
-button {border-left: 4px solid #7c3aed !important;}
+button[kind="secondary"] {border: 1.5px solid #7c3aed !important; border-left: 4px solid #7c3aed !important; background: #1c1c24 !important;}
 .stApp {background: #0a0a0f;}
 
 /* TITLE */
@@ -111,6 +111,8 @@ if audio:
                 mp3_fp = io.BytesIO()
                 tts.write_to_fp(mp3_fp)
                 st.audio(mp3_fp, format="audio/mp3")
+                st.code(translated, language=None)
+                st.caption("👆 Long press to copy")
             except:
                 pass
     except:
