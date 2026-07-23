@@ -1,6 +1,5 @@
 streamlit
 streamlit-mic-recorder
-SpeechRecognition
 deep-translator
+SpeechRecognition
 gTTS
-pydub
