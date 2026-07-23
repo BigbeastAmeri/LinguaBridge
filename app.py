@@ -16,6 +16,8 @@ LANGUAGES = {
 st.markdown("""
 <style>
 #MainMenu, footer, header {visibility: hidden;}
+div[data-baseweb="select"] {border-left: 4px solid #7c3aed !important;}
+button {border-left: 4px solid #7c3aed !important;}
 .stApp {background: #0a0a0f;}
 
 /* TITLE */
