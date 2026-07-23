@@ -74,7 +74,9 @@ if 'do_swap' not in st.session_state:
     st.session_state.do_swap = False
 
 if st.session_state.do_swap:
-    st.session_state.from_lang, st.session_state.to_lang = st.session_state.to_lang, st.session_state.from_lang
+    temp_from = st.session_state.from_lang
+    st.session_state.from_lang = st.session_state.to_lang
+    st.session_state.to_lang = temp_from
     st.session_state.do_swap = False
 
 c1, c2, c3 = st.columns([4,1,4])
