@@ -67,15 +67,25 @@ st.markdown('<p class="sub-title">Speak Any Language. Understand Everything.</p>
 
 if 'history' not in st.session_state:
     st.session_state.history = []
+if 'from_lang' not in st.session_state:
+    st.session_state.from_lang = "Auto Detect"
+    st.session_state.to_lang = "Spanish"
 
-c1, c2 = st.columns(2)
+c1, c2, c3 = st.columns([4,1,4])
 with c1:
     st.markdown("From")
-    src_name = st.selectbox("From", list(LANGUAGES.keys()), index=0, label_visibility="collapsed")
+    src_name = st.selectbox("From", list(LANGUAGES.keys()), key="from_lang", label_visibility="collapsed")
     src_code = LANGUAGES[src_name]
 with c2:
+    st.markdown(" ")
+    if st.button("🔄", use_container_width=True):
+        temp = st.session_state.from_lang
+        st.session_state.from_lang = st.session_state.to_lang
+        st.session_state.to_lang = temp
+        st.rerun()
+with c3:
     st.markdown("To")
-    tgt_name = st.selectbox("To", [k for k in LANGUAGES.keys() if k != "Auto Detect"], index=1, label_visibility="collapsed")
+    tgt_name = st.selectbox("To", [k for k in LANGUAGES.keys() if k != "Auto Detect"], key="to_lang", label_visibility="collapsed")
     tgt_code = LANGUAGES[tgt_name]
 
 st.write("")
