@@ -70,6 +70,12 @@ if 'history' not in st.session_state:
 if 'from_lang' not in st.session_state:
     st.session_state.from_lang = "Auto Detect"
     st.session_state.to_lang = "Spanish"
+if 'do_swap' not in st.session_state:
+    st.session_state.do_swap = False
+
+if st.session_state.do_swap:
+    st.session_state.from_lang, st.session_state.to_lang = st.session_state.to_lang, st.session_state.from_lang
+    st.session_state.do_swap = False
 
 c1, c2, c3 = st.columns([4,1,4])
 with c1:
@@ -77,17 +83,14 @@ with c1:
     src_name = st.selectbox("From", list(LANGUAGES.keys()), key="from_lang", label_visibility="collapsed")
     src_code = LANGUAGES[src_name]
 with c2:
-    st.markdown(" ")
+    st.markdown(" ")
     if st.button("🔄", use_container_width=True):
-        temp = st.session_state.from_lang
-        st.session_state.from_lang = st.session_state.to_lang
-        st.session_state.to_lang = temp
+        st.session_state.do_swap = True
         st.rerun()
 with c3:
     st.markdown("To")
     tgt_name = st.selectbox("To", [k for k in LANGUAGES.keys() if k != "Auto Detect"], key="to_lang", label_visibility="collapsed")
     tgt_code = LANGUAGES[tgt_name]
-
 st.write("")
 audio = mic_recorder(
     start_prompt="🎙️ Hold to Record",
