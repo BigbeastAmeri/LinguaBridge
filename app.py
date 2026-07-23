@@ -116,7 +116,7 @@ if audio:
     with sr.AudioFile(wav_buffer) as source:
         audio_data = r.record(source)
         temp_text = r.recognize_google(audio_data)
-    translated = GoogleTranslator(source='auto', target=tgt_code).translate(temp_text)
+    
         # Translate with Google FREE
         translated = GoogleTranslator(source="auto", target=tgt_code).translate(temp_text)
         st.session_state.history.insert(0, {"src": temp_text, "tgt": translated, "from": src_name, "to": tgt_name})
